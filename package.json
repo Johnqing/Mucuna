@@ -1,0 +1,10 @@
+{
+	"name": "Mucuna",
+	"version": "0.0.1",
+	"description": "猫豆一套简单的前端编译平台",
+	"git repository": "https://github.com/Johnqing/Mucuna",
+	"author": "johnqing",
+	"dependencies": {
+
+	}
+}
