@@ -1,17 +1,22 @@
 {
-  "name": "Mucuna",
-  "version": "0.0.1",
-  "readmeFilename": "README.md",
-  "description": "猫豆一套简单的前端编译平台",
-  "homepage": "https://github.com/Johnqing/Mucuna",
-  "repository": "https://github.com/Johnqing/Mucuna",
-  "keywords": [],
-  "main": "./index.js",
-  "bin": {
-    "mucuna": "./bin/mucuna"
-  },
-  "dependencies": {},
-  "devDependencies": {},
-  "optionalDependencies": {},
-  "license": "MIT"
+	"name": "mucuna",
+	"version": "0.0.1",
+	"readmeFilename": "README.md",
+	"description": "猫豆一套简单的前端编译平台",
+	"homepage": "https://github.com/Johnqing/Mucuna",
+	"repository": "https://github.com/Johnqing/Mucuna",
+	"keywords": [],
+	"main": "./index.js",
+	"bin": {
+		"mucuna": "./bin/mucuna"
+	},
+	"dependencies": {
+		"uglify-js": "*",
+		"clean-css": "*"
+	},
+	"devDependencies": {
+
+	},
+	"optionalDependencies": {},
+	"license": "MIT"
 }

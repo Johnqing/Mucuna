@@ -10,7 +10,7 @@ var help = function () {
     process.stdout.write('Usage: Mucuna <file>\n');
 };
 
-
+var cwdPath = process.cwd();
 var file;
 var value;
 var args = process.argv.slice(2);
@@ -57,6 +57,4 @@ if (!fs.existsSync(file)) {
     process.exit(1);
 };
 
-
-
-Mucuna.compile(file);
+Mucuna.compile(cwdPath, file);
