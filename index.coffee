@@ -1,10 +1,7 @@
 fs  = require 'fs'
-sysConfig = require './config/sysConfig'
-CleanCSS = require 'clean-css'
-uglify = require "uglify-js"
 
-pro = uglify.uglify
-# minimized = CleanCSS.process source, options
+# 配置文件
+mkdir = require './lib/mkdir'
 
 
 base = 
@@ -20,12 +17,20 @@ errorLogs =
 
 # if errorLogs.warning
 
+userSetting = null
 
+# 获取用户配置
+# 并且赋值
+setUserSets = (path) ->
+	data = fs.readFileSync path, 'utf-8'
+	userSetting = JSON.parse data
+	return
+# 编译入口
 exports.compile = (cwd, file) ->
-	base.cwd = cwd.replace '\\', '/'
+	base.cwd = cwd or cwd.replace '\\', '/'
 	base.cfg = file or base.cfg
 
+	setUserSets "#{base.cwd}/#{base.cfg}"
 
-
-	console.log pro
+	console.log userSetting
 	return

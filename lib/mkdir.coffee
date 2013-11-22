@@ -8,7 +8,11 @@ fs = require 'fs'
 exports.mkdirSync = (folderPath, mode, callback) ->
 	path = require "path"
 	arr = folderPath.split "/"
-	mode = mode or 0755;
+	# mode 为function的时候
+	# mode = 0755
+	if typeof mode == 'function'
+		callback = mode
+		mode = '0755'
 
 	if arr[0] is "." 
 		arr.shift();
