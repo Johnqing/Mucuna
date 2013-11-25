@@ -1,8 +1,9 @@
 fs  = require 'fs'
-
+path = require 'path'
 # 配置文件
-mkdir = require './lib/mkdir'
-
+fileProcess = require './lib/fileProcess'
+# 文件处理
+compress = require './lib/compress'
 
 base = 
 	cwd: './'
@@ -13,17 +14,19 @@ errorLogs =
 	error: 0
 	warning: 0
 
-# 编译时是否发生warning
+usrConfig = null
 
-# if errorLogs.warning
+# 文件路径和编译后代码
+# key 文件路径
+# value 编译后代码
+filesCode = {}
 
-userSetting = null
 
 # 获取用户配置
 # 并且赋值
 setUserSets = (path) ->
 	data = fs.readFileSync path, 'utf-8'
-	userSetting = JSON.parse data
+	usrConfig = JSON.parse data
 	return
 # 编译入口
 exports.compile = (cwd, file) ->
@@ -31,6 +34,41 @@ exports.compile = (cwd, file) ->
 	base.cfg = file or base.cfg
 
 	setUserSets "#{base.cwd}/#{base.cfg}"
+	# 当前文件目录
+	filePath = "#{base.cwd}/#{usrConfig.static_path}"
+	# 打包文件目录
+	output = "#{base.cwd}/output/#{usrConfig.static_path}"
+	# 获取需要打包文件夹下所有文件路径
+	files = fileProcess.getAllFiles filePath
+	# 在根目录下生成output
+	fileProcess.mkdirSync output
+	# 生成output下文件夹
+	files.forEach (item)->
 
-	console.log userSetting
+		itemArr = item.split "#{usrConfig.static_path}"
+		oldPath = "#{usrConfig.static_path}#{itemArr[1]}"
+		fNum = itemArr[1].lastIndexOf('/')
+		folder = itemArr[1].substring 0, fNum
+
+		fileType = path.extname item
+		fileBaseName = path.basename item
+		# 获取文件内容
+		# code = fs.readFileSync oldPath, "utf8"
+
+		# 递归生成文件夹
+		newFolders = "#{output}#{folder}"
+		fileProcess.mkdirSync newFolders, (e)->
+			if e
+				console.log e
+			else 
+				if itemArr[1].indexOf(usrConfig.combo_file) == -1
+
+					minCode = compress oldPath, fileType
+					newFile = "#{newFolders}/#{fileBaseName}"
+					fileProcess.writeFile newFile, minCode
+					filesCode[newFile] = minCode
+
+			return
+		return
+	# console.log files
 	return
