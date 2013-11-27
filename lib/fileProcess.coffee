@@ -55,7 +55,7 @@ exports.writeFile = (file, codes, callback)->
 	fs.open file, "w", "0644", (e, fd) ->
 		if e
 			throw e
-		fs.write fd, codes, 0, 'utf8', (e)->
+		fs.writeSync fd, codes, 0, 'utf8', (e)->
 			if e
 				throw e
 			fs.closeSync fd

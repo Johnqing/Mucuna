@@ -3,6 +3,7 @@ path = require 'path'
 # 配置文件
 fileProcess = require './lib/fileProcess'
 # 文件处理
+combo = require './lib/combo'
 compress = require './lib/compress'
 
 base = 
@@ -42,6 +43,9 @@ exports.compile = (cwd, file) ->
 	files = fileProcess.getAllFiles filePath
 	# 在根目录下生成output
 	fileProcess.mkdirSync output
+
+	comboArr = []
+
 	# 生成output下文件夹
 	files.forEach (item)->
 
@@ -52,23 +56,38 @@ exports.compile = (cwd, file) ->
 
 		fileType = path.extname item
 		fileBaseName = path.basename item
-		# 获取文件内容
-		# code = fs.readFileSync oldPath, "utf8"
 
-		# 递归生成文件夹
+		# 递归生成文件夹 
 		newFolders = "#{output}#{folder}"
 		fileProcess.mkdirSync newFolders, (e)->
 			if e
 				console.log e
 			else 
 				if itemArr[1].indexOf(usrConfig.combo_file) == -1
-
 					minCode = compress oldPath, fileType
 					newFile = "#{newFolders}/#{fileBaseName}"
 					fileProcess.writeFile newFile, minCode
 					filesCode[newFile] = minCode
 
+					console.log minCode
+				else
+					try
+						code = fs.readFileSync oldPath, "utf8"
+						opts = 
+							folder: newFolders
+							codes: code
+							type: fileType
+							name: fileBaseName
+						comboArr.push opts
+					catch e
+						console.log e			
+					
+					
 			return
 		return
-	# console.log files
+	# 合并
+	console.log filesCode
+	for cb in comboArr
+		combo cb, filesCode
+	
 	return
