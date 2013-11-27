@@ -5,6 +5,11 @@ Mucuna（猫豆）
 
 一套简单的前端编译平台
 
+## 安装
+
+```
+npm install -g mucuna
+```
 
 ## 基本用法
 
