@@ -7,7 +7,7 @@ var fs = require('fs');
 
 
 var help = function () {
-    process.stdout.write('Usage: Mucuna <file>\n');
+	process.stdout.write('Usage: mucuna <profiles>\n');
 };
 
 var cwdPath = process.cwd();
@@ -16,45 +16,44 @@ var value;
 var args = process.argv.slice(2);
 
 if (args[0] && /^[^-]|\//.test(args[0])) {
-    file = args.shift();
+	file = args.shift();
 }
 
 
 while (args.length > 0) {
-    value = args.shift();
-    switch (value) {
-                
-                case '-h':
-        case '--help':
-            help();
-            process.exit();
-            break;
-                
-                case '-v':
-        case '--version':
-            var version = require('../package.json').version;
-            process.stdout.write(version + '\n');
-            process.exit();
-            break;
+	value = args.shift();
+	switch (value) {
+		case '-h':
+		case '--help':
+			help();
+			process.exit();
+			break;
 
-        default:
+		case '-v':
+		case '--version':
+			var version = require('../package.json').version;
+			process.stdout.write(version + '\n');
+			process.exit();
+			break;
 
-            if (!file) {
-                file = value;
-            }
-    }
+		default:
+
+			if (!file) {
+				file = value;
+			}
+	}
 }
 
 
 if (!file) {
-    help();
-    process.exit(1);
+	help();
+	process.exit(1);
 }
 
 
 if (!fs.existsSync(file)) {
-    help();
-    process.exit(1);
+	help();
+	process.exit(1);
 };
 
 Mucuna.compile(cwdPath, file);
