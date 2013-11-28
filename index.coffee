@@ -1,7 +1,7 @@
 fs  = require 'fs'
 path = require 'path'
 # 配置文件
-fileProcess = require './lib/fileProcess'
+fileHelper = require './lib/file'
 # 文件处理
 combo = require './lib/combo'
 compress = require './lib/compress'
@@ -40,9 +40,9 @@ exports.compile = (cwd, file) ->
 	# 打包文件目录
 	output = "#{base.cwd}/output/#{usrConfig.static_path}"
 	# 获取需要打包文件夹下所有文件路径
-	files = fileProcess.getAllFiles filePath
+	files = fileHelper.getAllFiles filePath
 	# 在根目录下生成output
-	fileProcess.mkdirSync output
+	fileHelper.mkdirSync output
 
 	comboArr = []
 
@@ -59,15 +59,16 @@ exports.compile = (cwd, file) ->
 
 		# 递归生成文件夹 
 		newFolders = "#{output}#{folder}"
-		fileProcess.mkdirSync newFolders, (e)->
+		fileHelper.mkdirSync newFolders, (e)->
 			if e
 				console.log e
 			else 
 				if itemArr[1].indexOf(usrConfig.combo_file) == -1
-					minCode = compress oldPath, fileType
 					newFile = "#{newFolders}/#{fileBaseName}"
-					fileProcess.writeFile newFile, minCode
-					filesCode[newFile] = minCode
+					minCode = compress oldPath, newFile, fileType
+					if minCode						
+						fileHelper.writeFile newFile, minCode
+						filesCode[newFile] = minCode
 
 					console.log minCode
 				else

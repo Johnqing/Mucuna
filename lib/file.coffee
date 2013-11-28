@@ -63,3 +63,28 @@ exports.writeFile = (file, codes, callback)->
 			return
 		return
 	return
+###
+* 复制文件
+* @param {String} from 文件源
+* @param {String} to 目标文件
+* @param {Function} callback 回调
+###
+exports.copy = (from, to, callback) ->
+	# 输入流
+	input = fs.createReadStream from
+	# 输出流
+	output = fs.createWriteStream to
+	# 把输入复制到输出
+	input.on "data", (d)->
+		output.write d
+	# 错误提示
+	input.on "error", (error)->
+		console.log error
+		return
+	
+	input.on "end", ->
+		# 当输入结束
+		output.end()
+		callback and callback()
+		return
+	return

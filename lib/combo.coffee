@@ -2,7 +2,7 @@ fs = require 'fs'
 # 配置文件正则
 sysConfig = require '../config/sysConfig'
 
-fileProcess = require './fileProcess'
+fileHelper = require './file'
 
 realpath = require './realpath'
 
@@ -54,4 +54,4 @@ module.exports = (opts, fileList)->
 		# 写入合并文件
 		codes = combo[type] opts, fileList
 
-		fileProcess.writeFile "#{opts.folder}/#{opts.name}", codes
+		fileHelper.writeFile "#{opts.folder}/#{opts.name}", codes
