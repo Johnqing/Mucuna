@@ -29,6 +29,15 @@ setUserSets = (path) ->
 	data = fs.readFileSync path, 'utf-8'
 	usrConfig = JSON.parse data
 	return
+# 剔除不需要编译的文件
+isNotCompile = (type)->
+	if not usrConfig.js_combine and type is 'js'
+		return true
+	if not usrConfig.css_combine and type is 'css'
+		return true
+	if not usrConfig.img_combine and /jpg|jpeg|png|gif/g.test type
+		return true
+
 # 编译入口
 exports.compile = (cwd, file) ->
 	base.cwd = cwd or cwd.replace '\\', '/'
@@ -55,8 +64,12 @@ exports.compile = (cwd, file) ->
 		folder = itemArr[1].substring 0, fNum
 
 		fileType = path.extname item
+		fileType = fileType.substring 1, fileType.length
 		fileBaseName = path.basename item
 
+		# 剔除不需要编译的文件
+		if isNotCompile fileType
+			return
 		# 递归生成文件夹 
 		newFolders = "#{output}#{folder}"
 		fileHelper.mkdirSync newFolders, (e)->
@@ -64,8 +77,10 @@ exports.compile = (cwd, file) ->
 				console.log e
 			else 
 				if itemArr[1].indexOf(usrConfig.combo_file) == -1
+					# 去除点
 					newFile = "#{newFolders}/#{fileBaseName}"
 					minCode = compress oldPath, newFile, fileType
+
 					if minCode						
 						fileHelper.writeFile newFile, minCode
 						filesCode[newFile] = minCode

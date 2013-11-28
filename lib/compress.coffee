@@ -19,7 +19,6 @@ minify =
 
 
 module.exports = (form, target, type)->
-	type = type.substring 1, type.length
 	# js|css
 	if /js|css/.test type
 		return minify[type] form

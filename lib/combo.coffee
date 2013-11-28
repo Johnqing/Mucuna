@@ -48,8 +48,6 @@ combo =
 
 module.exports = (opts, fileList)->
 	type = opts.type
-	type = type.substring 1, type.length
-
 	if type is 'js' or type is 'css'
 		# 写入合并文件
 		codes = combo[type] opts, fileList
