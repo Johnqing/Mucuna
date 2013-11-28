@@ -92,6 +92,7 @@
               comboArr.push(opts);
             } catch (_error) {
               e = _error;
+              errorLogs.error++;
               console.log(e);
             }
           }
@@ -103,6 +104,7 @@
       cb = comboArr[_i];
       combo(cb, filesCode);
     }
+    console.log(errorLogs);
   };
 
 }).call(this);

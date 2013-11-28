@@ -64,6 +64,7 @@ exports.compile = (cwd, file) ->
 		folder = itemArr[1].substring 0, fNum
 
 		fileType = path.extname item
+		# 去除点
 		fileType = fileType.substring 1, fileType.length
 		fileBaseName = path.basename item
 
@@ -76,8 +77,7 @@ exports.compile = (cwd, file) ->
 			if e
 				console.log e
 			else 
-				if itemArr[1].indexOf(usrConfig.combo_file) == -1
-					# 去除点
+				if itemArr[1].indexOf(usrConfig.combo_file) == -1					
 					newFile = "#{newFolders}/#{fileBaseName}"
 					minCode = compress oldPath, newFile, fileType
 
@@ -96,6 +96,7 @@ exports.compile = (cwd, file) ->
 							name: fileBaseName
 						comboArr.push opts
 					catch e
+						errorLogs.error++
 						console.log e			
 					
 					
@@ -106,4 +107,6 @@ exports.compile = (cwd, file) ->
 	for cb in comboArr
 		combo cb, filesCode
 	
+	console.log(errorLogs)
+
 	return
