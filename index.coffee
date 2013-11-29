@@ -6,14 +6,19 @@ fileHelper = require './lib/file'
 combo = require './lib/combo'
 compress = require './lib/compress'
 
-base = 
+global.base = 
 	cwd: './'
 	cfg: 'config.js'
+	htmlTpl: 'html'
 
 
-errorLogs = 
+global.errorLogs = 
 	error: 0
 	warning: 0
+	log: []
+	logFn: (e)->
+		@log.push e
+		@error++
 
 usrConfig = null
 
@@ -31,6 +36,8 @@ setUserSets = (path) ->
 	return
 # 剔除不需要编译的文件
 isNotCompile = (type)->
+	if not usrConfig.html_combine and type is global.base.htmlTpl
+		return true
 	if not usrConfig.js_combine and type is 'js'
 		return true
 	if not usrConfig.css_combine and type is 'css'
@@ -40,14 +47,16 @@ isNotCompile = (type)->
 
 # 编译入口
 exports.compile = (cwd, file) ->
-	base.cwd = cwd or cwd.replace '\\', '/'
-	base.cfg = file or base.cfg
+	global.base.cwd = cwd or cwd.replace '\\', '/'
+	global.base.cfg = file or global.base.cfg
 
-	setUserSets "#{base.cwd}/#{base.cfg}"
+	# 所有配置文件会被添加到 usrConfig
+	setUserSets "#{global.base.cwd}/#{global.base.cfg}"
+	global.base.htmlTpl = usrConfig.htmlTpl
 	# 当前文件目录
-	filePath = "#{base.cwd}/#{usrConfig.static_path}"
+	filePath = "#{global.base.cwd}/#{usrConfig.static_path}"
 	# 打包文件目录
-	output = "#{base.cwd}/output/#{usrConfig.static_path}"
+	output = "#{global.base.cwd}/output/#{usrConfig.static_path}"
 	# 获取需要打包文件夹下所有文件路径
 	files = fileHelper.getAllFiles filePath
 	# 在根目录下生成output
@@ -75,7 +84,7 @@ exports.compile = (cwd, file) ->
 		newFolders = "#{output}#{folder}"
 		fileHelper.mkdirSync newFolders, (e)->
 			if e
-				console.log e
+				global.errorLogs.logFn e
 			else 
 				if itemArr[1].indexOf(usrConfig.combo_file) == -1					
 					newFile = "#{newFolders}/#{fileBaseName}"
@@ -85,7 +94,6 @@ exports.compile = (cwd, file) ->
 						fileHelper.writeFile newFile, minCode
 						filesCode[newFile] = minCode
 
-					console.log minCode
 				else
 					try
 						code = fs.readFileSync oldPath, "utf8"
@@ -95,9 +103,8 @@ exports.compile = (cwd, file) ->
 							type: fileType
 							name: fileBaseName
 						comboArr.push opts
-					catch e
-						errorLogs.error++
-						console.log e			
+					catch er
+						global.errorLogs.logFn er		
 					
 					
 			return
@@ -106,7 +113,8 @@ exports.compile = (cwd, file) ->
 	console.log filesCode
 	for cb in comboArr
 		combo cb, filesCode
-	
-	console.log(errorLogs)
+	# 显示错误信息
+	console.log global.errorLogs.log
+	console.log global.errorLogs.error
 
 	return

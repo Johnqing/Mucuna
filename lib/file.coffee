@@ -54,10 +54,10 @@ exports.mkdirSync = (folderPath, mode, callback) ->
 exports.writeFile = (file, codes, callback)->
 	fs.open file, "w", "0644", (e, fd) ->
 		if e
-			throw e
-		fs.writeSync fd, codes, 0, 'utf8', (e)->
-			if e
-				throw e
+			global.errorLogs.logFn e
+		fs.writeSync fd, codes, 0, 'utf8', (er)->
+			if er
+				global.errorLogs.logFn er
 			fs.closeSync fd
 			callback and callback
 			return
@@ -76,10 +76,11 @@ exports.copy = (from, to, callback) ->
 	output = fs.createWriteStream to
 	# 把输入复制到输出
 	input.on "data", (d)->
+		console.log d
 		output.write d
 	# 错误提示
 	input.on "error", (error)->
-		console.log error
+		global.errorLogs.logFn error
 		return
 	
 	input.on "end", ->
