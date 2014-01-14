@@ -56,8 +56,8 @@ if (!fs.existsSync(file)) {
 };
 // 解析配置文件
 function parConfig(path){
-    data = fs.readFileSync(path, 'utf-8');
-    return JSON.parse(data);
+    var code = fs.readFileSync(path, 'utf-8');
+    return JSON.parse(code);
 }
 file = parConfig(file);
 buildMod.build(gbPath, file);
