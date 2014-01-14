@@ -2,7 +2,7 @@
 
 'use strict';
 
-var Mucuna = require('../index.js');
+var buildMod = require('../build.js');
 var fs = require('fs');
 
 
@@ -10,7 +10,7 @@ var help = function () {
 	process.stdout.write('Usage: mucuna <profiles>\n');
 };
 
-var cwdPath = process.cwd();
+var gbPath = process.cwd();
 var file;
 var value;
 var args = process.argv.slice(2);
@@ -54,5 +54,10 @@ if (!fs.existsSync(file)) {
 	help();
 	process.exit(1);
 };
-
-Mucuna.compile(cwdPath, file);
+// 解析配置文件
+function parConfig(path){
+    data = fs.readFileSync(path, 'utf-8');
+    return JSON.parse(data);
+}
+file = parConfig(file);
+buildMod.build(gbPath, file);

@@ -6,7 +6,7 @@
 	"homepage": "https://github.com/Johnqing/Mucuna",
 	"repository": "https://github.com/Johnqing/Mucuna",
 	"keywords": [],
-	"main": "./index.js",
+	"main": "./build.js",
 	"bin": {
 		"mucuna": "./bin/mucuna"
 	},
