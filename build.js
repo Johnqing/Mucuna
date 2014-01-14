@@ -186,7 +186,6 @@ function importFile(filepaths, cbDir){
 
                 return fCon;
             });
-            console.log('x', comboStr);
             return  comboStr
         }
 
