@@ -27,7 +27,6 @@ function realpath(path) {
     while (path.match(DOUBLE_DOT_RE)) {
         path = path.replace(DOUBLE_DOT_RE, "/")
     }
-
     // a//b/c  ==>  a/b/c
     path = path.replace(DOUBLE_SLASH_RE, "$1/")
 
@@ -162,7 +161,6 @@ function importFile(filepaths, cbDir){
             }else{
                 originalFileContent[_file] = originalFileContent[_file].replace(/\s*\(*function\s*\(\)\s{\s*.var\s+srcPath\s*\=\s*(\'|\").*(\'|\");/ig,'')
                     .replace(/\s*\}.*/ig, '');
-               // console.log(originalFileContent[_file]);
             }
 
 
@@ -186,16 +184,14 @@ function importFile(filepaths, cbDir){
 
                 return fCon;
             });
-            return  comboStr
+
+            return comboStr
         }
 
         var fileContent = path.extname(file).toLowerCase() === '.js' ?
             _importFileRecursively(file, 'js') : _importFileRecursively(file);
         imported.push(file);
-
         fileCache[file] = fileContent;
-
-        return [imported, fileCache];
     }
 
 
@@ -203,8 +199,7 @@ function importFile(filepaths, cbDir){
     for(i=-1; curFile = filepaths[++i];){
         _importAFile(curFile);
     }
-
-    return [imported,fileCache];
+    return [imported, fileCache];
 }
 // 汉字转为Unicode字符码表示
 function toUnicode(s){
@@ -272,7 +267,7 @@ function compressFile(fileList, cache, config, cp){
                 });
                 ast = ast.transform(compressor);
                 ast.mangle_names();
-                var code = ast.print_to_string()
+                var code = ast.print_to_string();
             } catch (err){
                 console.log('Error occured while compressing code using uglify-js. ' + err);
                 return;
@@ -297,15 +292,13 @@ function compressFile(fileList, cache, config, cp){
 
     var i,file;
     for(i=-1;file = fileList[++i];){
-        fileBinPath = path.resolve(binDir,path.relative(srcDir,file));
-        //console.log(fileBinPath, path.dirname(fileBinPath));
+        fileBinPath = path.resolve(binDir,path.relative(srcDir, file));
         // 不存在就创建
         ensureDirectory(path.dirname(fileBinPath));
         if(!Object.prototype.hasOwnProperty.call(cache, file)){
             console.log('Fatal error!! Trying to build file not cached: ' + file);
             continue;
         }
-
         _compressRawCode(fileBinPath, cache[file], function(error, fileCompressed){
             if(error){
                 console.log('Error: can not compress file: '+ fileCompressed +'.\n\t'+error);
@@ -320,11 +313,12 @@ function compressFile(fileList, cache, config, cp){
                 var _fileContent = remark.replace('{date}', new Date().toLocaleString())
                     .replace('{author}', config.author ) +   //增加author信息
                     _defFileCont;   //这里将输出文件里的\n全部删掉。如果出现构建后的js不能运行的bug，查一下这里。
+
                 delete fileCompressedCache[fileCompressed];   //清除文件缓存内容，回收内存
 
                 // 输出
                 writeFile(fileCompressed, function(){
-                    fs.writeFileSync(fileCompressed, _fileContent, 'utf8' );
+                    fs.writeFileSync(fileCompressed, _fileContent, 'utf8');
                 });
                 console.log('Compress completed: '+fileCompressed, 'none');
                 fileSucceeded.push(fileCompressed);
@@ -354,11 +348,11 @@ function _copyFile(from, to, callback) {
         return output.write(d);
     });
     input.on("error", function(error) {
-        console.log(error);
+        callback && callback(error);
     });
     input.on("end", function() {
         output.end();
-        callback && callback();
+        callback && callback(null);
     });
 };
 /**
@@ -388,18 +382,23 @@ function copyFile(files, config, callback){
             targetDir = path.dirname(defFile)+'/';
         ensureDirectory(targetDir);
 
-       // console.log('Copying '+_srcDir+' to '+ targetDir,'none');
-        _copyFile(_srcDir, defFile, function(){
+        _copyFile(_srcDir, defFile, function(err){
+            if(err){
+                console.log( 'Copy error: ' +  err );
+                fileFailed.push(defFile);
+                if(++fileCount === files.length){
+                    callback(fileSucceeded,fileFailed);
+                }
+                return;
+            }
+            console.log('Copy completed. From '+_srcDir+' to '+targetDir,'none');
             fileSucceeded.push(defFile);
             if(++fileCount === files.length){
-                callback(fileSucceeded,fileFailed);
+                callback(fileSucceeded, fileFailed);
             }
         });
 
     }
-
-
-
     for(i=0; i<files.length; i++){
         _copy(files[i]);
     }
@@ -421,19 +420,37 @@ function md5 (text) {
  * @param config
  */
 function updateVersion(filepaths, config){
-   // console.log(realpath('aa/bb/../cc'));
-    var tmpDirName = config.template;
+    var tmpDirName = config.template,
+        binPath = config.binPath,
+        rPath = binPath.replace(/\//, '\\');
     var tpmFile = [];
     for(var i=0;i< filepaths.length; i++){
         var tpmDir = path.resolve(path.dirname(filepaths[i]));
-        //console.log(typeof tpmDir);
-        if(tpmDir.indexOf(tmpDirName) >= -1){
+        if(tpmDir.indexOf(tmpDirName) >= 0){
             tpmFile.push(filepaths[i]);
         }
     }
 
-    copyFile(tpmFile, config, function(){
+    function _replaceHtml(file){
+        var tplHtml = fs.readFileSync(file, 'utf8');
+        tplHtml.replace(/\<[^>]+\s*(?:src|href)="(.*?)"*\>/ig, function(m, p){
+            var _file = path.dirname(file).split(rPath);
+            var fileTruePath = realpath(binPath+'/'+_file[1].substring(1,_file[1].length)+'/'+p);
+            fileTruePath = path.resolve(_file[0], fileTruePath);
 
+            var stFile = fs.readFileSync(fileTruePath, 'utf8');
+            // 对文件内容进行md5
+            var version = md5(stFile);
+            version = version.substring(version.length-6);
+            return p.replace(/\?v=\w+/, '')+'?v='+version;
+        });
+    }
+
+
+    copyFile(tpmFile, config, function(suc, fail){
+        for(var i=0;i<suc.length;i++){
+            _replaceHtml(suc[i]);
+        }
     })
 
 }
@@ -473,7 +490,6 @@ exports.build = function(filepaths, config, callback){
     // 文件压缩
     compressFile(importedResult[0], importedResult[1], config);
     copyFile(pictureFilepaths, config);
-    console.log('压缩js、css，并且copy图片完成!\n开始为文件打版本号！');
     //打版本号
-   // updateVersion(allPaths, config)
+    //updateVersion(allPaths, config)
 }
