@@ -7,7 +7,7 @@ Mucuna（猫豆）
 ```
 npm install -g mucuna
 ```
-
+在根目录下添加json文件，内容如下：
 ```
 {
     //编译资源路径
