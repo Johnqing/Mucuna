@@ -11,6 +11,37 @@ cleancss = require('clean-css'),
 uglifyjs = require('uglify-js'),
 appConfig;
 /**
+ * 加密
+ * @type {*}
+ */
+var crypto = require('crypto');
+function md5 (text) {
+    return crypto.createHash('md5').update(text).digest('hex');
+};
+/**
+ * href|src地址替换
+ * @param tplHtml
+ * @returns {XML|string|void}
+ */
+function fileVersion(tplHtml, file, config, regx){
+    var binPath = config.binPath,
+        rPath = binPath.replace(/\//, '\\');
+    regx = regx || /(?:src|href)=['\"]?([^\'\"]*)['\"]?/igm;
+    var newStr = tplHtml.replace(regx, function(m, p){
+        var _file = path.dirname(file).split(process.cwd());
+        var root = _file[1].replace(/\\/g, '/').substring(1);
+        var fileTruePath = realpath(root+'/'+p);
+        fileTruePath = path.resolve(_file[0], fileTruePath);
+        var stFile = fs.readFileSync(fileTruePath, 'utf8');
+        // 对文件内容进行md5
+        var version = md5(stFile);
+        version = version.substring(version.length-6);
+        var newURL = p.replace(/\?v=\w+/, '')+'?v='+version;
+        return m.replace(p, newURL);
+    });
+    return newStr;
+}
+/**
  * 相对路径修改
  * @param path
  * @returns {XML}
@@ -274,8 +305,9 @@ function compressFile(fileList, cache, config, cp){
             }
         }else if(type == 'css'){
             try{
+                var regx = /url\s*\(*['\"]?([^\'\"]*)['\"]?\s*\)/igm
                 var code = new cleancss().minify(rawCode);
-
+                code = fileVersion(code, binPath, config, regx);
             } catch (err){
                 console.log('Error occured while compressing code using clean-css. ' + err);
                 return
@@ -309,10 +341,7 @@ function compressFile(fileList, cache, config, cp){
 
                 // 对unicode字符进行特殊处理
                 _defFileCont = toUnicode(_defFileCont);
-                var remark = '/*author:{author},date: {date}*/\n'
-                var _fileContent = remark.replace('{date}', new Date().toLocaleString())
-                    .replace('{author}', config.author ) +   //增加author信息
-                    _defFileCont;   //这里将输出文件里的\n全部删掉。如果出现构建后的js不能运行的bug，查一下这里。
+                var _fileContent = _defFileCont;   //这里将输出文件里的\n全部删掉。如果出现构建后的js不能运行的bug，查一下这里。
 
                 delete fileCompressedCache[fileCompressed];   //清除文件缓存内容，回收内存
 
@@ -406,23 +435,14 @@ function copyFile(files, config, callback){
         callback([],[]);
     }
 }
-/**
- * 加密
- * @type {*}
- */
-var crypto = require('crypto');
-function md5 (text) {
-    return crypto.createHash('md5').update(text).digest('hex');
-};
+
 /**
  * 版本号更新
  * @param filepaths
  * @param config
  */
 function updateVersion(filepaths, config){
-    var tmpDirName = config.template,
-        binPath = config.binPath,
-        rPath = binPath.replace(/\//, '\\');
+    var tmpDirName = config.template;
     var tpmFile = [];
     for(var i=0;i< filepaths.length; i++){
         var tpmDir = path.resolve(path.dirname(filepaths[i]));
@@ -431,22 +451,16 @@ function updateVersion(filepaths, config){
         }
     }
 
+    /**
+     * 内容更新
+     * @param file
+     * @private
+     */
     function _replaceHtml(file){
         var tplHtml = fs.readFileSync(file, 'utf8');
-        tplHtml.replace(/\<[^>]+\s*(?:src|href)="(.*?)"*\>/ig, function(m, p){
-            var _file = path.dirname(file).split(rPath);
-            var fileTruePath = realpath(binPath+'/'+_file[1].substring(1,_file[1].length)+'/'+p);
-            fileTruePath = path.resolve(_file[0], fileTruePath);
-
-            var stFile = fs.readFileSync(fileTruePath, 'utf8');
-            // 对文件内容进行md5
-            var version = md5(stFile);
-            version = version.substring(version.length-6);
-            return p.replace(/\?v=\w+/, '')+'?v='+version;
-        });
+        fs.writeFileSync(file, fileVersion(tplHtml, file, config), 'utf8');
+        console.log('Updated version of the file is '+file);
     }
-
-
     copyFile(tpmFile, config, function(suc, fail){
         for(var i=0;i<suc.length;i++){
             _replaceHtml(suc[i]);
@@ -487,9 +501,10 @@ exports.build = function(filepaths, config, callback){
         console.log('合并文件时发生错误：'. e);
         return;
     }
-    // 文件压缩
-    compressFile(importedResult[0], importedResult[1], config);
-    copyFile(pictureFilepaths, config);
-    //打版本号
-    //updateVersion(allPaths, config)
+    copyFile(pictureFilepaths, config, function(){
+        // 文件压缩
+        compressFile(importedResult[0], importedResult[1], config);
+        //打版本号
+        updateVersion(allPaths, config);
+    });
 }
