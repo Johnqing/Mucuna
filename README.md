@@ -14,7 +14,9 @@ npm install -g mucuna
     "srcPath": "src",
     //编译完成后生成路径
     "binPath": "output",
-    //合并文件夹名字
+    // html模板文件目录(必须在srcPath下)
+    "template": "html",
+    //合并文件夹名字(必须在srcPath下)
     "combo_file": "combo",
     //作者信息
     "author": "johnqing"

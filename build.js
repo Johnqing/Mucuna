@@ -41,6 +41,56 @@ function fileVersion(tplHtml, file, config, regx){
     });
     return newStr;
 }
+
+function jsParse(rawCode){
+    try{
+        var jsp = uglifyjs.parse,
+            pro = uglifyjs.uglify,
+        // 解析成语法树
+            ast = jsp(rawCode);
+        ast.figure_out_scope();
+        var compressor = uglifyjs.Compressor({
+            // 逗号操作符隔开
+            sequences     : true,
+            //属性优化 a[b] => a.b
+            properties    : true,
+            // 删掉没用的代码
+            dead_code     : true,
+            //干掉 debugger
+            drop_debugger : true,
+            // 不安全因素优化
+            unsafe        : true,
+            // 条件语句优化 转为三目
+            conditionals  : true,
+            // 常量优化
+            evaluate      : false,
+            unused        : false,
+            hoist_funs    : false,
+            hoist_vars    : false,
+            if_return     : false,
+            join_vars     : false,
+            cascade       : false,
+            side_effects  : false,
+            global_defs   : {}
+        });
+        ast = ast.transform(compressor);
+        ast.mangle_names();
+        return ast.print_to_string();
+    } catch (err){
+        console.log('Error occured while compressing code using uglify-js. ' + err);
+        return;
+    }
+}
+function cssParse(rawCode, opts){
+    try{
+        var regx = /url\s*\(*['\"]?([^\'\"]*)['\"]?\s*\)/igm
+        var code = new cleancss().minify(rawCode);
+        return fileVersion(code, opts.binPath, opts.config, regx);
+    } catch (err){
+        console.log('Error occured while compressing code using clean-css. ' + err);
+        return
+    }
+}
 /**
  * 相对路径修改
  * @param path
@@ -266,52 +316,12 @@ function compressFile(fileList, cache, config, cp){
         }
         //以字符串输入源代码 rawCode，编译后保存到 fileCompressedCache[binPath].
         if(type == 'js'){
-            try{
-                var jsp = uglifyjs.parse,
-                    pro = uglifyjs.uglify,
-                // 解析成语法树
-                    ast = jsp(rawCode);
-                ast.figure_out_scope();
-                var compressor = uglifyjs.Compressor({
-                    // 逗号操作符隔开
-                    sequences     : true,
-                    //属性优化 a[b] => a.b
-                    properties    : true,
-                    // 删掉没用的代码
-                    dead_code     : true,
-                    //干掉 debugger
-                    drop_debugger : true,
-                    // 不安全因素优化
-                    unsafe        : true,
-                    // 条件语句优化 转为三目
-                    conditionals  : true,
-                    // 常量优化
-                    evaluate      : false,
-                    unused        : false,
-                    hoist_funs    : false,
-                    hoist_vars    : false,
-                    if_return     : false,
-                    join_vars     : false,
-                    cascade       : false,
-                    side_effects  : false,
-                    global_defs   : {}
-                });
-                ast = ast.transform(compressor);
-                ast.mangle_names();
-                var code = ast.print_to_string();
-            } catch (err){
-                console.log('Error occured while compressing code using uglify-js. ' + err);
-                return;
-            }
+            code = jsParse(rawCode);
         }else if(type == 'css'){
-            try{
-                var regx = /url\s*\(*['\"]?([^\'\"]*)['\"]?\s*\)/igm
-                var code = new cleancss().minify(rawCode);
-                code = fileVersion(code, binPath, config, regx);
-            } catch (err){
-                console.log('Error occured while compressing code using clean-css. ' + err);
-                return
-            }
+            code = cssParse(rawCode, {
+                binPath: binPath,
+                config: config
+            });
         }
         fileCompressedCache[binPath] = code
         callback(null, binPath);
@@ -450,7 +460,6 @@ function updateVersion(filepaths, config){
             tpmFile.push(filepaths[i]);
         }
     }
-
     /**
      * 内容更新
      * @param file
