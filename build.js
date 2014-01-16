@@ -29,7 +29,6 @@ function fileVersion(tplHtml, file, config, regx){
         rPath = binPath.replace(/\//, '\\');
     regx = regx || /(?:src|href)=['\"]?([^\'\"]*)['\"]?/igm;
     var newStr = tplHtml.replace(regx, function(m, p){
-        console.log(p);
         var _file = path.dirname(file).split(process.cwd());
         var root = _file[1].replace(/\\/g, '/').substring(1);
         var fileTruePath = realpath(root+'/'+p);
