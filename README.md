@@ -7,7 +7,8 @@ Mucuna（猫豆）
 ```
 npm install -g mucuna
 ```
-> json文件中请不要包含注释
+> 注意：json文件中请不要包含注释
+
 在根目录下添加json文件，内容如下：
 ```
 {
