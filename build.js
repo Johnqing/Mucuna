@@ -89,7 +89,7 @@ function jsParse(rawCode){
         return ast.print_to_string();
     } catch (err){
         debug('使用 uglify-js压缩时发生错误： ' + err, 2);
-        return rawCode;
+       // return rawCode;
     }
 }
 function cssParse(rawCode, opts){
@@ -386,7 +386,7 @@ function compressFile(fileList, cache, config, cp){
                 var _defFileCont =  fileCompressedCache[fileCompressed]
                 // 对unicode字符进行特殊处理
                 if(path.extname(fileCompressed) == '.js'){
-                    _defFileCont = toUnicode(_defFileCont);
+                    //_defFileCont = toUnicode(_defFileCont);
                 }
                 var _fileContent = _defFileCont;   //这里将输出文件里的\n全部删掉。如果出现构建后的js不能运行的bug，查一下这里。
 
@@ -553,7 +553,7 @@ exports.build = function(filepaths, config, callback){
 
     var importedResult;
     try{
-        importedResult  = importFile(filepaths, config.combo_file);
+        importedResult  = importFile(filepaths, config);
     }catch (e){
         debug('合并文件时发生错误：'+e , 2);
         return;
