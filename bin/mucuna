@@ -7,7 +7,7 @@ var fs = require('fs');
 
 
 var help = function () {
-	process.stdout.write('Usage: mucuna <profiles>\n');
+	process.stdout.write('Usage: mucuna <config.json>\n');
 };
 
 var gbPath = process.cwd();

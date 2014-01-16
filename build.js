@@ -9,6 +9,7 @@ path = require('path'),
 cp = require('child_process'),
 cleancss = require('clean-css'),
 uglifyjs = require('uglify-js'),
+smushit = require('node-smushit'),
 debug = require('./lib/debug').logger;
 /**
  * 加密
@@ -28,6 +29,7 @@ function fileVersion(tplHtml, file, config, regx){
         rPath = binPath.replace(/\//, '\\');
     regx = regx || /(?:src|href)=['\"]?([^\'\"]*)['\"]?/igm;
     var newStr = tplHtml.replace(regx, function(m, p){
+        console.log(p);
         var _file = path.dirname(file).split(process.cwd());
         var root = _file[1].replace(/\\/g, '/').substring(1);
         var fileTruePath = realpath(root+'/'+p);
@@ -88,17 +90,24 @@ function jsParse(rawCode){
         return ast.print_to_string();
     } catch (err){
         debug('使用 uglify-js压缩时发生错误： ' + err, 2);
-        return;
+        return rawCode;
     }
 }
 function cssParse(rawCode, opts){
     try{
-        var regx = /url\s*\(*['\"]?([^\'\"]*)['\"]?\s*\)/igm
+        var regx = /background[^;"]+url\s*\(*['\"]?([^\'\"\)]+)['\"]?\s*\)/gim
         var code = new cleancss().minify(rawCode);
         return fileVersion(code, opts.binPath, opts.config, regx);
     } catch (err){
-        debug('使用 clean-css 压缩css时发生错误： ' + err, 2);
-        return
+        debug('使用 clean-css 压缩css时发生错误： ' + rawCode, 2);
+        return rawCode;
+    }
+}
+function imgParse(filePath){
+    try{
+        smushit.smushit(filePath);
+    } catch (err){
+        debug('压缩图片失败!', 1);
     }
 }
 /**
@@ -358,9 +367,10 @@ function compressFile(fileList, cache, config, cp){
             } else {
                 //成功构建
                 var _defFileCont =  fileCompressedCache[fileCompressed]
-
                 // 对unicode字符进行特殊处理
-                _defFileCont = toUnicode(_defFileCont);
+                if(path.extname(fileCompressed) == '.js'){
+                    _defFileCont = toUnicode(_defFileCont);
+                }
                 var _fileContent = _defFileCont;   //这里将输出文件里的\n全部删掉。如果出现构建后的js不能运行的bug，查一下这里。
 
                 delete fileCompressedCache[fileCompressed];   //清除文件缓存内容，回收内存
@@ -525,11 +535,13 @@ exports.build = function(filepaths, config, callback){
         return;
     }
     debug('开始构建！');
-    copyFile(pictureFilepaths, config, function(){
+    copyFile(pictureFilepaths, config, function(suc, fail){
         // 文件压缩
         compressFile(importedResult[0], importedResult[1], config);
         //打版本号
         updateVersion(allPaths, config, function(){
+            //压缩图片
+            imgParse(suc);
             debug('结束构建！');
         });
 

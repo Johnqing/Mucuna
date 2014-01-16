@@ -7,6 +7,7 @@ Mucuna（猫豆）
 ```
 npm install -g mucuna
 ```
+> json文件中请不要包含注释
 在根目录下添加json文件，内容如下：
 ```
 {
@@ -45,6 +46,7 @@ output是Mucuna编译后，文件生成目录。
 后续添加的模块编译后，都会生成到output文件夹内。
 
 ## 已支持功能
++ 图片压缩(output下图片)
 + 增加日志
 + js、css压缩
 + 图片资源copy到output
