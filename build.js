@@ -104,8 +104,25 @@ function cssParse(rawCode, opts){
     }
 }
 function imgParse(filePath){
+    var i = 0,
+        count = filePath.length;
     try{
-        smushit.smushit(filePath);
+        debug('开始压缩图片！')
+        smushit.smushit(filePath, {
+            verbose: false,
+            onItemComplete: function(e, item, response){
+                if(e){
+                    debug(e, 1);
+                    return;
+                };
+                if(i == 0){
+                    console.log('压缩中，请稍后...');
+                }
+                if(++i == count){
+                    debug('图片压缩完成！');
+                }
+            }
+        });
     } catch (err){
         debug('压缩图片失败!', 1);
     }
@@ -540,9 +557,9 @@ exports.build = function(filepaths, config, callback){
         compressFile(importedResult[0], importedResult[1], config);
         //打版本号
         updateVersion(allPaths, config, function(){
+            debug('结束构建！');
             //压缩图片
             imgParse(suc);
-            debug('结束构建！');
         });
 
     });
