@@ -40,7 +40,12 @@ function fileVersion(tplHtml, file, config, regx){
             var newURL = p.replace(/\?v=\w+/, '')+'?v='+version;
             return m.replace(p, newURL);
         } catch (err){
-            debug(fileTruePath+' is not found!', 1);
+            if(config.tpl){
+                debug(file+'文件中'+p+' 更新版本号失败，请确认是否存在!', 2);
+            }else{
+                debug(fileTruePath+' is not found!', 1);
+            }
+            return m;
         }
 
     });
@@ -456,6 +461,7 @@ function copyFile(files, config, callback){
  * @param config
  */
 function updateVersion(filepaths, config, callback){
+    config.tpl = true;
     var tmpDirName = config.template;
     var tpmFile = [];
     for(var i=0;i< filepaths.length; i++){
@@ -471,8 +477,11 @@ function updateVersion(filepaths, config, callback){
      */
     function _replaceHtml(file){
         var tplHtml = fs.readFileSync(file, 'utf8');
-        fs.writeFileSync(file, fileVersion(tplHtml, file, config), 'utf8');
-        debug('已经更新版本的文件： '+file);
+        var code = fileVersion(tplHtml, file, config);
+        if(code){
+            fs.writeFileSync(file, code, 'utf8');
+            debug('已经更新版本的文件： '+file);
+        }
     }
     copyFile(tpmFile, config, function(suc, fail){
         for(var i=0;i<suc.length;i++){
