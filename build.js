@@ -34,7 +34,7 @@ function fileVersion(tplHtml, file, config, regx){
         var fileTruePath = realpath(root+'/'+p);
         fileTruePath = path.resolve(_file[0], fileTruePath);
         try{
-            var stFile = fs.readFileSync(fileTruePath, 'utf8');
+            var stFile = fs.readFileSync(fileTruePath, config.fileEncoding);
             // 对文件内容进行md5
             var version = md5(stFile);
             version = version.substring(version.length-6);
@@ -247,13 +247,14 @@ function walk(rpath, callback){
  * @param filepaths
  * @param srcDir
  */
-function importFile(filepaths, cbDir){
+function importFile(filepaths, config){
     //所有已经被合并的文件
     var imported = [],
         //存放所有已经合并的文件内容
         fileCache = {},
         //存放文件的原始内容
-        originalFileContent = {};
+        originalFileContent = {},
+        cbDir = config.combo_file;
 
     var i, curFile;
 
@@ -270,7 +271,7 @@ function importFile(filepaths, cbDir){
             }
 
             if(originalFileContent[_file]==null){
-                originalFileContent[_file] = fs.readFileSync(_file,'utf8');
+                originalFileContent[_file] = fs.readFileSync(_file, config.fileEncoding);
             }
             if(_file.indexOf(cbDir) == -1){
                 return  originalFileContent[_file];
@@ -296,7 +297,7 @@ function importFile(filepaths, cbDir){
                 importingFile = importingFile.replace(/\\/g, '\\\\');
 
                 var fCon = originalFileContent[importingFile]==null ?
-                    originalFileContent[importingFile] = fs.readFileSync(importingFile,'utf8') : originalFileContent[importingFile];
+                    originalFileContent[importingFile] = fs.readFileSync(importingFile, config.fileEncoding) : originalFileContent[importingFile];
 
                 return fCon;
             });
@@ -393,7 +394,7 @@ function compressFile(fileList, cache, config, cp){
 
                 // 输出
                 writeFile(fileCompressed, function(){
-                    fs.writeFileSync(fileCompressed, _fileContent, 'utf8');
+                    fs.writeFileSync(fileCompressed, _fileContent, config.fileEncoding);
                 });
                 debug('压缩完成: '+fileCompressed);
                 fileSucceeded.push(fileCompressed);
@@ -502,10 +503,10 @@ function updateVersion(filepaths, config, callback){
      * @private
      */
     function _replaceHtml(file){
-        var tplHtml = fs.readFileSync(file, 'utf8');
+        var tplHtml = fs.readFileSync(file, config.fileEncoding);
         var code = fileVersion(tplHtml, file, config);
         if(code){
-            fs.writeFileSync(file, code, 'utf8');
+            fs.writeFileSync(file, code, config.fileEncoding);
             debug('已经更新版本的文件： '+file);
         }
     }
@@ -518,8 +519,15 @@ function updateVersion(filepaths, config, callback){
 
 }
 //===================================================================
+/**
+ * 构建主体
+ * @param filepaths 文件执行路径
+ * @param config    配置文件
+ * @param callback  完成后的回调
+ */
 exports.build = function(filepaths, config, callback){
     config.base = filepaths;
+    config.fileEncoding = config.fileEncoding || 'utf8'
     config.binPath += '/'+config.srcPath;
     var srcDir = path.resolve(filepaths, config.srcPath);
 

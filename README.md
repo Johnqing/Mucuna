@@ -20,6 +20,8 @@ npm install -g mucuna
     "template": "html",
     //合并文件夹名字(必须在srcPath下)
     "combo_file": "combo",
+    // 项目文件编码.可选项，默认为utf8
+    "fileEncoding": "utf8",
     //作者信息
     "author": "johnqing"
 }
