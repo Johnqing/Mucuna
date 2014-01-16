@@ -9,7 +9,7 @@ path = require('path'),
 cp = require('child_process'),
 cleancss = require('clean-css'),
 uglifyjs = require('uglify-js'),
-appConfig;
+debug = require('./lib/debug').logger;
 /**
  * 加密
  * @type {*}
@@ -32,12 +32,17 @@ function fileVersion(tplHtml, file, config, regx){
         var root = _file[1].replace(/\\/g, '/').substring(1);
         var fileTruePath = realpath(root+'/'+p);
         fileTruePath = path.resolve(_file[0], fileTruePath);
-        var stFile = fs.readFileSync(fileTruePath, 'utf8');
-        // 对文件内容进行md5
-        var version = md5(stFile);
-        version = version.substring(version.length-6);
-        var newURL = p.replace(/\?v=\w+/, '')+'?v='+version;
-        return m.replace(p, newURL);
+        try{
+            var stFile = fs.readFileSync(fileTruePath, 'utf8');
+            // 对文件内容进行md5
+            var version = md5(stFile);
+            version = version.substring(version.length-6);
+            var newURL = p.replace(/\?v=\w+/, '')+'?v='+version;
+            return m.replace(p, newURL);
+        } catch (err){
+            debug(fileTruePath+' is not found!', 1);
+        }
+
     });
     return newStr;
 }
@@ -77,7 +82,7 @@ function jsParse(rawCode){
         ast.mangle_names();
         return ast.print_to_string();
     } catch (err){
-        console.log('Error occured while compressing code using uglify-js. ' + err);
+        debug('使用 uglify-js压缩时发生错误： ' + err, 2);
         return;
     }
 }
@@ -87,7 +92,7 @@ function cssParse(rawCode, opts){
         var code = new cleancss().minify(rawCode);
         return fileVersion(code, opts.binPath, opts.config, regx);
     } catch (err){
-        console.log('Error occured while compressing code using clean-css. ' + err);
+        debug('使用 clean-css 压缩css时发生错误： ' + err, 2);
         return
     }
 }
@@ -310,7 +315,7 @@ function compressFile(fileList, cache, config, cp){
         var extname = path.extname(binPath),
             type =  extname.substr(1);
         if(rawCode == ''){
-            console.log(binPath + 'is empty!');
+            debug(binPath+'不存在!', 1);
             callback && callback(fileSucceeded, fileFailed);
             return
         }
@@ -338,12 +343,12 @@ function compressFile(fileList, cache, config, cp){
         // 不存在就创建
         ensureDirectory(path.dirname(fileBinPath));
         if(!Object.prototype.hasOwnProperty.call(cache, file)){
-            console.log('Fatal error!! Trying to build file not cached: ' + file);
+            debug(file + '不在缓存中 ', 2);
             continue;
         }
         _compressRawCode(fileBinPath, cache[file], function(error, fileCompressed){
             if(error){
-                console.log('Error: can not compress file: '+ fileCompressed +'.\n\t'+error);
+                debug('无法压缩： '+ fileCompressed +'.\n\t'+error, 3);
                 fileFailed.push(fileCompressed);
             } else {
                 //成功构建
@@ -359,7 +364,7 @@ function compressFile(fileList, cache, config, cp){
                 writeFile(fileCompressed, function(){
                     fs.writeFileSync(fileCompressed, _fileContent, 'utf8');
                 });
-                console.log('Compress completed: '+fileCompressed, 'none');
+                debug('压缩完成: '+fileCompressed);
                 fileSucceeded.push(fileCompressed);
             }
             if(++curCount === filesCount){
@@ -383,7 +388,6 @@ function _copyFile(from, to, callback) {
     input = fs.createReadStream(from);
     output = fs.createWriteStream(to);
     input.on("data", function(d) {
-        console.log(d);
         return output.write(d);
     });
     input.on("error", function(error) {
@@ -423,14 +427,14 @@ function copyFile(files, config, callback){
 
         _copyFile(_srcDir, defFile, function(err){
             if(err){
-                console.log( 'Copy error: ' +  err );
+                debug( '拷贝文件出错: ' +  err, 2);
                 fileFailed.push(defFile);
                 if(++fileCount === files.length){
                     callback(fileSucceeded,fileFailed);
                 }
                 return;
             }
-            console.log('Copy completed. From '+_srcDir+' to '+targetDir,'none');
+            debug('从 '+_srcDir+' 拷贝到 '+targetDir+'完成');
             fileSucceeded.push(defFile);
             if(++fileCount === files.length){
                 callback(fileSucceeded, fileFailed);
@@ -451,7 +455,7 @@ function copyFile(files, config, callback){
  * @param filepaths
  * @param config
  */
-function updateVersion(filepaths, config){
+function updateVersion(filepaths, config, callback){
     var tmpDirName = config.template;
     var tpmFile = [];
     for(var i=0;i< filepaths.length; i++){
@@ -468,12 +472,13 @@ function updateVersion(filepaths, config){
     function _replaceHtml(file){
         var tplHtml = fs.readFileSync(file, 'utf8');
         fs.writeFileSync(file, fileVersion(tplHtml, file, config), 'utf8');
-        console.log('Updated version of the file is '+file);
+        debug('已经更新版本的文件： '+file);
     }
     copyFile(tpmFile, config, function(suc, fail){
         for(var i=0;i<suc.length;i++){
             _replaceHtml(suc[i]);
         }
+        callback && callback();
     })
 
 }
@@ -484,7 +489,7 @@ exports.build = function(filepaths, config, callback){
     var srcDir = path.resolve(filepaths, config.srcPath);
 
     if(!fs.existsSync(srcDir)){
-        console.log('Source directory does not exists. Aborting build operation...');
+        debug('错误:源代码目录不存在.', 2);
         callback && callback('错误:源代码目录不存在.');
         return ;
     }
@@ -507,13 +512,18 @@ exports.build = function(filepaths, config, callback){
     try{
         importedResult  = importFile(filepaths, config.combo_file);
     }catch (e){
-        console.log('合并文件时发生错误：'. e);
+        debug('合并文件时发生错误：'+e , 2);
         return;
     }
+    debug('开始构建！');
     copyFile(pictureFilepaths, config, function(){
         // 文件压缩
         compressFile(importedResult[0], importedResult[1], config);
         //打版本号
-        updateVersion(allPaths, config);
+        updateVersion(allPaths, config, function(){
+            debug('结束构建！');
+        });
+
     });
+
 }
