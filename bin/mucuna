@@ -4,11 +4,7 @@
 
 var buildMod = require('../build.js');
 var fs = require('fs');
-
-
-var help = function () {
-	process.stdout.write('Usage: mucuna <config.json>\n');
-};
+var path = require('path');
 
 var gbPath = process.cwd();
 var file;
@@ -17,6 +13,32 @@ var args = process.argv.slice(2);
 
 if (args[0] && /^[^-]|\//.test(args[0])) {
 	file = args.shift();
+}
+// 文件写入
+function writeFile(file, code) {
+    fs.open(file, "w", '0666');
+    fs.writeFileSync(file, code);
+};
+var help = function () {
+	var hArr = ['==================Mucuna Detail======================'];
+	hArr.push('Usage: mucuna <config.json>');
+	hArr.push('build config file                     -a/--add');
+	hArr.push('check version                         -v/--version');
+	hArr.push('check help                            -h/--help');
+	hArr.push('==================Mucuna Detail end======================');
+	process.stdout.write(hArr.join('\n\n'));
+};
+
+var addConf = function(){
+    var jsonCode = ['{',
+		'"binPath": "output",',
+		'"srcPath": "src",',
+		'"template": "html",',
+		'"combo_file": "combo",',
+		'"author": "your name"',
+		'}'].join('\n');
+    var gp = path.resolve(gbPath, 'config.json');
+    writeFile(gp, jsonCode);
 }
 
 
@@ -28,7 +50,10 @@ while (args.length > 0) {
 			help();
 			process.exit();
 			break;
-
+        case '-a':
+        case '--add':
+            addConf();
+            break;
 		case '-v':
 		case '--version':
 			var version = require('../package.json').version;
@@ -36,7 +61,6 @@ while (args.length > 0) {
 			process.exit();
 			break;
 		default:
-
 			if (!file) {
 				file = value;
 			}
