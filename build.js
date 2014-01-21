@@ -7,7 +7,7 @@
 var fs = require('fs'),
 path = require('path'),
 cp = require('child_process'),
-cleancss = require('clean-css'),
+cssco = require('csso'),
 uglifyjs = require('uglify-js'),
 smushit = require('node-smushit'),
 debug = require('./lib/debug').logger;
@@ -95,7 +95,7 @@ function jsParse(rawCode){
 function cssParse(rawCode, opts){
     try{
         var regx = /background[^;"]+url\s*\(*['\"]?([^\'\"\)]+)['\"]?\s*\)/gim
-        var code = new cleancss().minify(rawCode);
+        var code = cssco.justDoIt(rawCode);
         return fileVersion(code, opts.binPath, opts.config, regx);
     } catch (err){
         debug('使用 clean-css 压缩css时发生错误： ' + rawCode, 2);
@@ -106,7 +106,8 @@ function imgParse(filePath){
     var i = 0,
         count = filePath.length;
     try{
-        debug('开始压缩图片！')
+        console.log('===================================');
+        console.log('图片优化开始，请稍后....');
         smushit.smushit(filePath, {
             verbose: false,
             onItemComplete: function(e, item, response){
@@ -114,16 +115,13 @@ function imgParse(filePath){
                     debug(e, 1);
                     return;
                 };
-                if(i == 0){
-                    console.log('压缩中，请稍后...');
-                }
                 if(++i == count){
-                    debug('图片压缩完成！');
+                    debug('图片优化完成！');
                 }
             }
         });
     } catch (err){
-        debug('压缩图片失败!', 1);
+        debug('压缩图片失败!原因：'+err, 1);
     }
 }
 /**
@@ -148,43 +146,6 @@ function realpath(path) {
 
     return path
 }
-//拼接数组B到数组A后
-function _concat(arrayA, arrayB){
-    if(arrayB == null){
-        arrayB = arrayA;
-        arrayA = this;
-    }
-    while(arrayB.length>0){
-        arrayA.push(arrayB.shift());
-    }
-    return arrayA;
-}
-
-function toObj (arr){
-    var o ={};
-    for (var i=0, j=arr.length; i<j; ++i) {
-        o[arr[i]] = true;
-    }
-    return o;
-}
-function keys(o){
-    var rst=[];
-    for(i in o){
-        if(Object.prototype.hasOwnProperty.call(o,i)){
-            rst.push(i);
-        }
-    }
-    return rst;
-}
-//数组去重
-function uniqArray(arr){
-    return keys(toObj(arr));
-}
-
-//trim string
-function trim(str){
-    return str.replace(/(^\s*)|(\s*$)/g, '');
-}
 
 //写文件前先确定目录是否存在，不存在的话就建立
 function ensureDirectory(dir) {
@@ -208,17 +169,6 @@ function ensureDirectory(dir) {
             fs.mkdirSync(_dir, '775');
         }
     }
-}
-
-/* 功能: 格式化date
- * @param {date} date
- * @returns {string} formatedDate
- * description:
- * 返回类似2011/12/2 8:0:12
- */
-function formatDate(date){
-    return [date.getFullYear(),'/',date.getMonth()+1,'/',date.getDate(),
-        ' ',date.getHours(),':',date.getMinutes(),':',date.getSeconds()].join('');
 }
 /**
  * 递归目录下的所有文件
@@ -368,6 +318,9 @@ function compressFile(fileList, cache, config, cp){
         binDir = path.resolve(config.base, config.binPath) + '/',
         fileBinPath
 
+    console.log('==================================');
+    console.log('js/css压缩中...');
+
     var i,file;
     for(i=-1;file = fileList[++i];){
         fileBinPath = path.resolve(binDir,path.relative(srcDir, file));
@@ -408,6 +361,8 @@ function compressFile(fileList, cache, config, cp){
 
 
     }
+    console.log('js/css完成！');
+    console.log('==================================');
 }
 /*
  * 复制文件
