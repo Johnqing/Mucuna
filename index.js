@@ -57,7 +57,6 @@ Mucuna.prototype = {
 	hasStatic: function(obj){
 		var conf = this.conf;
 		for(var key in obj){
-			console.log(key);
 			var item = obj[key];
 			if(item.length){
 				var st = require('./lib/'+key);

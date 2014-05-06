@@ -6,14 +6,14 @@
 	"homepage": "https://github.com/Johnqing/Mucuna",
 	"repository": "https://github.com/Johnqing/Mucuna",
 	"keywords": [],
-	"main": "./build.js",
+	"main": "./index.js",
 	"bin": {
 		"mucuna": "./bin/mucuna"
 	},
 	"dependencies": {
 		"uglify-js": "*",
 		"csso": "*",
-		"node-smushit": "*",
+		"parserlib": "*",
 		"less": "*",
 		"coffee-script": "*"
 	},

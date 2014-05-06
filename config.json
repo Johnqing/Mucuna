@@ -7,11 +7,11 @@
 	"ENCODE_CHECK": true,
 	"HTML_REGULAR_CHECK": true,
 	"CSS_REGULAR_CHECK": true,
-	"JS_REGULAR_CHECK": true,
+	"JS_REGULAR_CHECK": false,
 	"CSS_COMBINE": true,
 	"JS_COMBINE": true,
 	"HTML_COMPRESS": false,
-	"CSS_COMPRESS": false,
+	"CSS_COMPRESS": true,
 	"JS_COMPRESS": true,
 	"OPTIMIZE_IMG": false,
 	"EXTERNAL_TO_INLINE": false
