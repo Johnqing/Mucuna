@@ -13,7 +13,9 @@
 	"dependencies": {
 		"uglify-js": "*",
 		"csso": "*",
-		"node-smushit": "*"
+		"node-smushit": "*",
+		"less": "*",
+		"coffee-script": "*"
 	},
 	"devDependencies": {
 

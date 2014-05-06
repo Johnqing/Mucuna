@@ -5,5 +5,5 @@ node_modules/
 *.bak
 
 src/
-index.js
+test.js
 output/
