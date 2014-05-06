@@ -5,13 +5,13 @@ var fs = require('fs');
 
 var logger = require('./lib/logger');
 var until = require('./lib/base');
-var jser = require('./lib/js');
-var csser = require('./lib/css');
-var imger = require('./lib/img');
 
 var config = until.config.init();
 
 function Mucuna(){
+
+	this.cache = {};
+
 	this.init();
 }
 
@@ -56,8 +56,15 @@ Mucuna.prototype = {
 	},
 	hasStatic: function(obj){
 		var conf = this.conf;
-		if(obj.js.length){
-			jser.call(this, obj.js);
+		for(var key in obj){
+			console.log(key);
+			var item = obj[key];
+			if(item.length){
+				var st = require('./lib/'+key);
+				var stObj = st.call(this, item);
+				until.config.mixin(this.cache, stObj);
+			}
+
 		}
 	},
 	/**
@@ -78,8 +85,8 @@ Mucuna.prototype = {
 
 		return {
 			js: js,
-			css: css,
-			img: img
+			img: img,
+			css: css
 		}
 	},
 	tpl: function(cb){
