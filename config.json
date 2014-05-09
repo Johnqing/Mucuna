@@ -10,7 +10,7 @@
 	"JS_REGULAR_CHECK": false,
 	"CSS_COMBINE": true,
 	"JS_COMBINE": true,
-	"HTML_COMPRESS": false,
+	"HTML_COMPRESS": true,
 	"CSS_COMPRESS": true,
 	"JS_COMPRESS": true,
 	"OPTIMIZE_IMG": false,

@@ -3,6 +3,8 @@
  */
 var fs = require('fs');
 
+require('./lib/g')
+
 var logger = require('./lib/logger');
 var until = require('./lib/base');
 
@@ -82,10 +84,15 @@ Mucuna.prototype = {
 			return /\.(?:jpg|jpeg|gif|png|ico)/.test(f);
 		});
 
+		var html = fileArr.filter(function(f){
+			return /\.(?:html|htm|shtml|tpl)/.test(f);
+		});
+
 		return {
 			js: js,
 			img: img,
-			css: css
+			css: css,
+			html: html
 		}
 	},
 	tpl: function(cb){
