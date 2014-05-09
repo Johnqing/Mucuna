@@ -5,7 +5,6 @@
 	"BUILD_PATH": "output",
 	"FILE_ENCODE": "utf-8",
 	"ENCODE_CHECK": true,
-	"HTML_REGULAR_CHECK": true,
 	"CSS_REGULAR_CHECK": true,
 	"JS_REGULAR_CHECK": false,
 	"CSS_COMBINE": true,
