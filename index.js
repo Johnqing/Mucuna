@@ -8,7 +8,7 @@ require('./lib/g')
 var logger = require('./lib/logger');
 var until = require('./lib/base');
 
-var config = until.config.init();
+var config;
 
 function Mucuna(){
 
@@ -113,5 +113,7 @@ Mucuna.prototype = {
 		});
 	}
 }
-
-new Mucuna();
+module.exports = function(confPath){
+	config = until.config.init(confPath);
+	new Mucuna();
+}

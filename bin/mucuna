@@ -2,86 +2,44 @@
 
 'use strict';
 
-var buildMod = require('../build.js');
 var fs = require('fs');
 var path = require('path');
+var util = require('util');
+var until = require('../lib/base');
+var commands = require('commander');
 
-var gbPath = process.cwd();
-var file;
-var value;
-var args = process.argv.slice(2);
+var mc = require('../index')
+var mucunaBinPath = path.dirname(fs.realpathSync(process.argv[1]))
+var packageConfig = fs.readFileSync(path.resolve(mucunaBinPath, '../package.json'), 'utf-8');
+var buildVersion = JSON.parse(packageConfig).version;
+// Specify commander options to parse command line params correctly
+commands
+	.version(buildVersion, '-v, --version')
+	.usage('[options] <source-file>')
+	.option('-a, --add', 'build config file');
 
-if (args[0] && /^[^-]|\//.test(args[0])) {
-	file = args.shift();
-}
-// 文件写入
-function writeFile(file, code) {
-    fs.open(file, "w", '0666');
-    fs.writeFileSync(file, code);
-};
-var help = function () {
-	var hArr = ['==================Mucuna Detail======================'];
-	hArr.push('Usage: mucuna <config.json>');
-	hArr.push('build config file                     -a/--add');
-	hArr.push('check version                         -v/--version');
-	hArr.push('check help                            -h/--help');
-	hArr.push('==================Mucuna Detail end======================');
-	process.stdout.write(hArr.join('\n\n'));
-};
+commands.on('--help', function() {
+	util.puts('  Examples:\n');
+	util.puts('    %> mucuna -a');
+	util.puts('    %> mucuna config.json');
+	util.puts('    %> mucuna -v');
+	util.puts('');
+	process.exit();
+});
 
-var addConf = function(){
-    var jsonCode = ['{',
-		'"binPath": "output",',
-		'"srcPath": "src",',
-		'"template": "html",',
-		'"combo_file": "combo",',
-		'"author": "your name"',
-		'}'].join('\n');
-    var gp = path.resolve(gbPath, 'config.json');
-    writeFile(gp, jsonCode);
-}
+commands.parse(process.argv);
 
-
-while (args.length > 0) {
-	value = args.shift();
-	switch (value) {
-		case '-h':
-		case '--help':
-			help();
-			process.exit();
-			break;
-        case '-a':
-        case '--add':
-            addConf();
-            break;
-		case '-v':
-		case '--version':
-			var version = require('../package.json').version;
-			process.stdout.write(version + '\n');
-			process.exit();
-			break;
-		default:
-			if (!file) {
-				file = value;
-			}
-	}
+var project = process.cwd() + path.sep + 'config.json';
+var conf = until.file.readFile(path.resolve(mucunaBinPath, '../config.json'));
+// add config for project
+if(commands.add){
+	fs.open(project, "w", '0666');
+	fs.writeFileSync(project, conf);
+	util.puts('请修改根目录下，config.json 文件内的配置');
+	process.exit();
+	return;
 }
 
-
-if (!file) {
-	help();
-	process.exit(1);
+if(commands.args.length > 0){
+	mc(path.normalize(project));
 }
-
-
-if (!fs.existsSync(file)) {
-	help();
-	process.exit(1);
-};
-// 解析配置文件
-function parConfig(path){
-    var code = fs.readFileSync(path, 'utf-8');
-    return JSON.parse(code);
-}
-file = parConfig(file);
-buildMod.build(gbPath, file);

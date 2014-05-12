@@ -12,19 +12,19 @@ npm install -g mucuna
 在根目录下添加json文件，内容如下：
 ```
 {
-    //编译资源路径
-    "srcPath": "src",
-    //编译完成后生成路径
-    "binPath": "output",
-    // html模板文件目录(必须在srcPath下)
-    "template": "html",
-    //合并文件夹名字(必须在srcPath下)
-    "combo_file": "combo",
-    // 项目文件编码.可选项，默认为utf8
-    "fileEncoding": "utf8",
-    //作者信息
-    "author": "johnqing"
-}
+     //编译资源路径
+     "srcPath": "src",
+     //编译完成后生成路径
+     "binPath": "output",
+     // html模板文件目录(必须在srcPath下)
+     "template": "html",
+     //合并文件夹名字(必须在srcPath下)
+     "combo_file": "combo",
+     // 项目文件编码.可选项，默认为utf8
+     "fileEncoding": "utf8",
+     //作者信息
+     "author": "johnqing"
+ }
 ```
 
 ## 基本用法

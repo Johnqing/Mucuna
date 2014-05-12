@@ -1,6 +1,6 @@
 {
 	"name": "mucuna",
-	"version": "0.1.14",
+	"version": "0.1.15",
 	"readmeFilename": "README.md",
 	"description": "猫豆一套简单的前端编译平台",
 	"homepage": "https://github.com/Johnqing/Mucuna",
@@ -15,7 +15,8 @@
 		"csso": "*",
 		"parserlib": "*",
 		"less": "*",
-		"coffee-script": "*"
+		"coffee-script": "*",
+		"commander": "*"
 	},
 	"devDependencies": {
 
