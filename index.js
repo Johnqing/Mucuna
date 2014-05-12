@@ -19,8 +19,10 @@ function Mucuna(){
 
 Mucuna.prototype = {
 	init: function(){
+		var that = this;
+
 		logger.print('=============== Mucuna start ===============\n');
-		this.conf = config;
+		that.conf = config;
 
 		var end = 0;
 
@@ -31,8 +33,11 @@ Mucuna.prototype = {
 			}
 		}
 
-		this.static(mDone);
-		this.tpl(mDone);
+		that.static(function(){
+			mDone();
+			that.tpl(mDone);
+		});
+
 	},
 	/**
 	 * 静态资源处理控制（不包含模板压缩）
@@ -107,8 +112,11 @@ Mucuna.prototype = {
 		until.file.cpdirSync(conf.TPL_PATH, conf.T_BUILD_PATH);
 
 		logger.print('模板文件copy完成，准备压缩/版本号更新');
-
-		until.file.walk(conf.BUILD_PATH, function(list){
+		// 针对模板目录下的文件，全部做压缩
+		until.file.walk(conf.T_BUILD_PATH, function(list){
+			var st = require('./lib/html');
+			var stObj = st.call(that, list, 'tpl');
+			until.config.mixin(that.cache, stObj);
 			cb && cb();
 		});
 	}

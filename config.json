@@ -1,5 +1,5 @@
 {
-	"TPL_PATH": "/tpl",
+	"TPL_PATH": "tpl",
 	"STATIC_PATH": "src",
 	"COMBINE_DIR": "combo",
 	"BUILD_PATH": "output",

@@ -13,6 +13,7 @@
 	"dependencies": {
 		"uglify-js": "*",
 		"csso": "*",
+		"node-smushit": "*",
 		"parserlib": "*",
 		"less": "*",
 		"coffee-script": "*",
