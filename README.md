@@ -19,6 +19,10 @@ Mucuna（猫豆）
 7. 你也可以帮Mucuna增加拓展，来提示你的开发效率
 
 
+## 提示
++ 使用本系统必须安装nodejs
++ 需要combo的文件，必须通过 `document.write` 或者 `@import` 来引用
+
 ## 安装
 
 ```
