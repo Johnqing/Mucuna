@@ -54,6 +54,12 @@ mucuna -a
 	"COMBINE_DIR": "combo",
 	// 输出目录，会在根目录创建
 	"BUILD_PATH": "output",
+	// 需要sprite图片的源路径
+	"SPRITE_SOURCE_PATH": "src/img",
+	// 生成sprite图片后的路径
+    "SPRITE_DEST_PATH": "src/sprites/",
+    // css中更新后的路径（防止实际路径和显示路径不同）
+    "SPRITE_CSS_PATH": "../../sprites/",
 	// 项目文件编码
 	"FILE_ENCODE": "utf-8",
 	// 编码检查
