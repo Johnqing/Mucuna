@@ -101,6 +101,7 @@ output是Mucuna编译后，文件生成目录。
 后续添加的模块编译后，都会生成到output文件夹内。
 
 ## 已支持功能
++ 增加css sprite，并且自动替换样式中相应的路径
 + 针对smarty模板做压缩
 + js、css语法检查
 + css整理

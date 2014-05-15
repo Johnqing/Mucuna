@@ -1,6 +1,6 @@
 {
 	"name": "mucuna",
-	"version": "0.1.17",
+	"version": "0.1.18",
 	"readmeFilename": "README.md",
 	"description": "猫豆一套简单的前端编译平台",
 	"homepage": "https://github.com/Johnqing/Mucuna",
@@ -11,6 +11,7 @@
 		"mucuna": "./bin/mucuna"
 	},
 	"dependencies": {
+		"css-sprites": "*",
 		"uglify-js": "*",
 		"csso": "*",
 		"node-smushit": "*",
