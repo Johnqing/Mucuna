@@ -47,42 +47,42 @@ mucuna -a
 在根目录下添加json文件，内容如下：
 ```
 {
+	// 项目文件编码
+	"FILE_ENCODE": "utf-8",
 	// 模板目录，针对模板进行压缩处理
-	"TPL_PATH": "/tpl",
+	"TPL_PATH": "demo/tpl",
 	// 静态资源目录
-	"STATIC_PATH": "src",
+	"STATIC_PATH": "demo/src",
 	// 合并文件存放文件夹
 	"COMBINE_DIR": "combo",
 	// 输出目录，会在根目录创建
-	"BUILD_PATH": "output",
+	"BUILD_PATH": "demo/output",
 	// 需要sprite图片的源路径
-	"SPRITE_SOURCE_PATH": "src/img",
-	// 生成sprite图片后的路径
+    "SPRITE_SOURCE_PATH": "src/img",
+    // 生成sprite图片后的路径
     "SPRITE_DEST_PATH": "src/sprites/",
     // css中更新后的路径（防止实际路径和显示路径不同）
     "SPRITE_CSS_PATH": "../../sprites/",
-	// 项目文件编码
-	"FILE_ENCODE": "utf-8",
-	// 编码检查
-	"ENCODE_CHECK": true,
-	// css语法检查
-	"CSS_REGULAR_CHECK": true,
-	// js语法检查
-	"JS_REGULAR_CHECK": false,
-	// css是否合并
-	"CSS_COMBINE": true,
-	// js是否合并
-	"JS_COMBINE": true,
-	// html是否压缩
-	"HTML_COMPRESS": true,
-	// css是否压缩
-	"CSS_COMPRESS": true,
-	// js是否压缩
-	"JS_COMPRESS": true,
-	// 图片是否优化
-	"OPTIMIZE_IMG": false,
-	// 外链文件是否存放到本地
-	"EXTERNAL_TO_INLINE": false
+    // HTML5语法检查
+	"VALIDATE_HTML": false,
+	// JS语法检查
+	"VALIDATE_JS": false,
+	// CSS语法检查
+	"VALIDATE_CSS": false,
+	// 图片优化
+	"OPTIMIZE_IMG": true,
+	// HTML压缩
+	"COMPRESS_HTML": true,
+	// JS压缩
+	"COMPRESS_JS": true,
+	// css压缩
+	"COMPRESS_CSS": true,
+	// css合并
+	"COMBINE_CSS": true,
+	// JS合并
+	"COMBINE_JS": true,
+	// 版本号更新
+	"STATIC_VERSION": true
 }
 ```
 
@@ -91,7 +91,7 @@ mucuna -a
 1. 在项目根目录下建立配置文件
 2. 在根目录运行
 ```
-mucuna (此处为配置文件)
+mucuna init
 ```
 3. 编译完成提示或编译失败提示
 4. 执行代码目录生成output文件夹
@@ -107,8 +107,32 @@ output是Mucuna编译后，文件生成目录。
 
 后续添加的模块编译后，都会生成到output文件夹内。
 
+## 第2版，增加功能
+
+
+```
+var mucuna = require('mucuna');
+var endCB = function(){}
+mucuna.init(process.cwd()).start(JSON.parse(config), endCB).handle([
+	'checkDir',
+	// findFiles 获取文件夹下，所以文件的路径和源码
+	'findFiles',
+	'validateHtml5',
+	'validateJs',
+	'validateCss',
+	'htmlMin',
+	'jsMin',
+	'cssMin',
+	'imgMin',
+	'combineJS',
+	'combineCss',
+	'staticVersion'
+]);
+```
+
+*调用顺序和执行顺序有关*
+
 ## 已支持功能
-+ 增加css sprite，并且自动替换样式中相应的路径
 + 针对smarty模板做压缩
 + js、css语法检查
 + css整理
