@@ -53,7 +53,7 @@ function _jsMin(code, options){
 		ast = ast.transform(compressor);
 		ast.mangle_names();
 		code = ast.print_to_string();
-		code = toUnicode(code);
+		code = Utils.text.toUnicode(code);
 	} catch (err){
 		options.error && options.error(err);
 	}
@@ -71,6 +71,17 @@ function _cssMin(code){
 
 // api
 var _ = module.exports;
+
+// 记录用户输入的配置
+_.props = {};
+// 代码缓存
+_.codes = {};
+// 错误信息
+_.errorList = {
+	warn: [],
+	error: []
+};
+_.plugins = [];
 /**
  *
  * @param fns
@@ -83,11 +94,22 @@ _.handle = function(fns){
 		var item = fns[i];
 		queue.add(_[item]);
 	}
-	queue.add(_.output).add(_.end);
+	queue.add(_.output).add(_.imgMin).add(_.end);
 	queue.next();
 	return _;
 }
 
+/**
+ * 添加插件
+ * @param name
+ * @param fn
+ * @returns {module.exports|*}
+ */
+_.addPlugin = function(name, fn){
+	_[name] = fn;
+	_.plugins.push(name);
+	return _;
+}
 
 /**
  * 输入内容
@@ -119,16 +141,6 @@ _.timing = function(){
 	return new Timer();
 }
 
-// 记录用户输入的配置
-_.props = {};
-// 代码缓存
-_.codes = {};
-// 错误信息
-_.errorList = {
-	warn: [],
-	error: []
-};
-
 // 初始化
 _.init = function(route){
 	//记录执行路径
@@ -148,6 +160,7 @@ _.init = function(route){
 	}
 	return _;
 }
+
 
 /**
  * 启动时，路径匹配/设置
@@ -179,13 +192,17 @@ _.start = function(config, cb){
  * 结束，用来打印错误日志
  */
 _.end = function(){
+	log.log('[*****************Mucuna END******************](green)');
 	var errLen = _.errorList.error.length;
 	var warnLen = _.errorList.warn.length;
+
+	log.log("\n[error: "+errLen+"](red)");
 	// 输出错误信息
 	for(var i=0; i<errLen; i++){
 		log.error(_.errorList.error[i]);
 	}
 
+	log.log("\n[warning: "+warnLen+"](yellow)");
 	// 输出一般错误
 	for(var i=0; i<warnLen; i++){
 		log.warn(_.errorList.warn[i]);
@@ -496,21 +513,41 @@ _.imgMin = function(){
 
 	var t = _.timing();
 	var imgList = _.files.static.img;
+	var newImgPath = [];
+	var len = imgList.length;
 
-	var smushit = require('node-smushit');
-	smushit.smushit(imgList, {
-		verbose: false,
-		onItemComplete: function(e){
-			if(e){
-				_.errorList.warn.push(e);
-				return;
-			};
-		},
-		onComplete: function(){
-			_.validateLog('Compress Img', t.end());
-			queue.next();
-		}
+	var done = function(){
+		// 批量压缩
+		var smushit = require('node-smushit');
+		smushit.smushit(newImgPath, {
+			verbose: false,
+			onItemComplete: function(e){
+				if(e){
+					_.errorList.warn.push(e);
+					return;
+				};
+			},
+			onComplete: function(){
+				_.validateLog('Compress Img', t.end());
+				queue.next();
+			}
+		});
+	}
+
+	imgList.forEach(function(item){
+		var outPath = item.replace(_.config.STATIC_PATH, _.config.STATIC_BUILD_PATH);
+		var fileReadStream = fs.createReadStream(item);
+		var fileWriteStream = fs.createWriteStream(outPath);
+		fileReadStream.pipe(fileWriteStream);
+		fileWriteStream.on('close',function(){
+			len--;
+			newImgPath.push(outPath);
+			if(!len){
+				done();
+			}
+		});
 	});
+
 	return this;
 }
 
@@ -642,7 +679,10 @@ _.staticVersion = function(){
 	queue.next();
 	return this;
 }
-
+/**
+ * 内容输出
+ * @returns {exports}
+ */
 _.output = function(){
 	Utils.file.cpdirSync(_.config.STATIC_PATH, _.config.STATIC_BUILD_PATH);
 	Utils.file.cpdirSync(_.config.TPL_PATH, _.config.TPL_BUILD_PATH);

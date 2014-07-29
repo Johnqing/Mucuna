@@ -18,6 +18,16 @@ base.text = {
 	md5: function(text){
 		var md5Text = crypto.createHash('md5').update(text).digest('hex')
 		return md5Text.substring(md5Text.length-5);
+	},
+	/**
+	 * 转换为unicode编码
+	 * @param s
+	 * @returns {XML|string|*|void}
+	 */
+	toUnicode: function(s){
+		return s.replace(/([\u4E00-\u9FA5]|[\uFE30-\uFFA0])/g, function(){
+			return "\\u" + RegExp["$1"].charCodeAt(0).toString(16);
+		});
 	}
 }
 /**

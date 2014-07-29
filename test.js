@@ -12,7 +12,6 @@ mucuna.init(process.cwd()).start(JSON.parse(config), endCB).handle([
 	'htmlMin',
 	'jsMin',
 	'cssMin',
-	'imgMin',
 	'combineJS',
 	'combineCss',
 	'staticVersion'
