@@ -1,45 +1,64 @@
 #!/usr/bin/env node
 
 'use strict';
-
 var fs = require('fs');
 var path = require('path');
-var util = require('util');
-var until = require('../lib/base');
-var commands = require('commander');
+var join = path.join;
 
-var mc = require('../index')
-var mucunaBinPath = path.dirname(fs.realpathSync(process.argv[1]))
-var packageConfig = fs.readFileSync(path.resolve(mucunaBinPath, '../package.json'), 'utf-8');
-var buildVersion = JSON.parse(packageConfig).version;
-// Specify commander options to parse command line params correctly
-commands
-	.version(buildVersion, '-v, --version')
-	.usage('[options] <source-file>')
-	.option('-a, --add', 'build config file');
+var optimist = require('optimist').alias({
+	'a': 'add',
+	'h': 'help',
+	'v': 'version'
+}).boolean(['v', 'h']);
 
-commands.on('--help', function() {
-	util.puts('  Examples:\n');
-	util.puts('    %> mucuna -a');
-	util.puts('    %> mucuna config.json');
-	util.puts('    %> mucuna -v');
-	util.puts('');
-	process.exit();
-});
+var root = join(__dirname, '../');
+var log = require(root + '/libs/log');
+var config = join(__dirname, '../', 'config.json');
 
-commands.parse(process.argv);
+var cmds = optimist.argv;
+var firstCmd = cmds._.splice(0, 1).toString();
 
-var project = process.cwd() + path.sep + 'config.json';
-var conf = until.file.readFile(path.resolve(mucunaBinPath, '../config.json'));
-// add config for project
-if(commands.add){
-	fs.open(project, "w", '0666');
-	fs.writeFileSync(project, conf);
-	util.puts('请修改根目录下，config.json 文件内的配置');
-	process.exit();
-	return;
+if(!firstCmd){
+	if(cmds.h){
+		log.help();
+		return
+	}
+	if(cmds.v){
+		log.version();
+	}
 }
 
-if(commands.args.length > 0){
-	mc(path.normalize(project));
+var writePath = process.cwd() + path.sep + 'config.json';
+/**
+ * 根目录下写入配置文件
+ */
+function writeConfig(){
+	var fileReadStream = fs.createReadStream(config);
+	var fileWriteStream = fs.createWriteStream(writePath);
+	fileReadStream.pipe(fileWriteStream);
+
+	fileWriteStream.on('close',function(){
+		log.note(writePath + ' 写入成功！');
+	});
+}
+/**
+ * 读取根目录下配置文件
+ * @param cb
+ */
+function readConfig(cb){
+	var conf = fs.readFileSync(writePath, 'utf-8');
+	cb(JSON.parse(conf));
+}
+
+// 初始化构建
+switch(firstCmd){
+	case 'add':
+		writeConfig();
+		return;
+	case 'init':
+		var start = require(root + '/index');
+		readConfig(function(data){
+			start.init(process.cwd()).start(data);
+		});
+		break;
 }

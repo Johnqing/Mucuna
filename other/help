@@ -1,0 +1,4 @@
+ * [mucuna add](green)：建立config配置文件
+ * [mucuna init](green)：根据配置文件处理静态资源
+ * [mucuna -h](green)：获取使用帮助
+ * [mucuna -v](green)：获取使用帮助

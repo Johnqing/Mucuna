@@ -1,7 +1,3 @@
-/**
- * jsLint 模块
- */
-
 var jsLint = require('./jsLint');
 
 module.exports = function(code, config){

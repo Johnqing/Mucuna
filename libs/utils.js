@@ -5,8 +5,6 @@ var fs = require('fs');
 var path = require('path');
 var crypto = require('crypto');
 
-var logger = require('./logger');
-
 //	私有变量
 var DOT_RE = /\/\.\//g;
 var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//;
@@ -153,14 +151,9 @@ base.file = {
 			fn = encode;
 			encode = void 0;
 		}
-
-		fs.open(file, "w", 0666, function(e, fd){
-			if(e) throw e;
-			fs.write(fd, content, 0, (encode || 'utf-8'), function(e){
-				if(e) throw e;
-				fn && fn();
-				fs.closeSync(fd);
-			});
+		fs.writeFile(file, content, (encode || 'utf-8'), function (err) {
+			if(err) throw err;
+			fn && fn();
 		});
 	},
 	/**
@@ -201,9 +194,6 @@ base.file = {
 					inner(source, target);
 				} else if (stat.isSymbolicLink()) {
 					fs.symlinkSync(fs.readlinkSync(source), target);
-				} else {
-					writeFile(source, target);
-					//fs.writeFileSync(target, base.file.readFileSync(source));
 				}
 			}
 		}
@@ -222,6 +212,31 @@ base.file = {
 }
 
 base.path = {
+	/**
+	 * 转换绝对路径
+	 * @param def
+	 * @param p
+	 * @returns {XML|string}
+	 */
+	absolute: function(def, p){
+		var lstDir = this.lastDir(def);
+		var fstDir = this.firstDir(p);
+		var surePath;
+
+
+		if(lstDir != fstDir){
+			surePath = this.realpath(def + path.sep + p);
+		} else {
+			// 去掉第一个文件夹
+			var delFirst = p.indexOf('/') == 0 ? p.substring(1) : p;
+			var pArr = delFirst.split(path.sep);
+			pArr.shift();
+			surePath = this.realpath(def + path.sep + pArr.join(path.sep))
+		}
+
+
+		return path.resolve(surePath);
+	},
 	/**
 	 * 相对路径修复
 	 * @param path
@@ -248,6 +263,16 @@ base.path = {
 	 */
 	win2unix: function(p){
 		return p.replace(/\\/g, '/');
+	},
+	/**
+	 * 第一个文件夹
+	 * @param p
+	 * @returns {*}
+	 */
+	firstDir: function(p){
+		p = p.indexOf('/') == 0 ? p.substring(1) : p;
+		var pArr = p.split(path.sep);
+		return pArr[0]
 	},
 	/**
 	 * 最后一个文件夹的名称

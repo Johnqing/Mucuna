@@ -1,24 +1,30 @@
 {
 	"name": "mucuna",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"readmeFilename": "README.md",
 	"description": "猫豆一套简单的前端编译平台",
 	"homepage": "https://github.com/Johnqing/Mucuna",
 	"repository": "https://github.com/Johnqing/Mucuna",
-	"keywords": [],
+	"keywords": [
+		"sprite",
+		"mucuna",
+		"compiling system",
+		"f2e"
+	],
 	"main": "./index.js",
 	"bin": {
 		"mucuna": "./bin/mucuna"
 	},
 	"dependencies": {
-		"css-sprites": "*",
+		"eventproxy": "*",
+		"optimist": "0.6.0",
+		"colors": "*",
+		"read": "1.0.4",
+		"html5-lint": "*",
+		"parserlib": "*",
 		"uglify-js": "*",
 		"csso": "*",
-		"node-smushit": "*",
-		"parserlib": "*",
-		"less": "*",
-		"coffee-script": "*",
-		"commander": "*"
+		"node-smushit": "*"
 	},
 	"devDependencies": {
 
