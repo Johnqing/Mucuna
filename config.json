@@ -16,5 +16,5 @@
 	"CSS_COMPRESS": true,
 	"JS_COMPRESS": true,
 	"OPTIMIZE_IMG": false,
-	"EXTERNAL_TO_INLINE": false
+	"CREATE_DOC": false
 }
